@@ -102,7 +102,8 @@ class DataViewer:
         pygame.draw.line(surf, p['dim'], (lr.x, header_y + 35), (lr.x + lr.w, header_y + 35), 2)
         for c_idx, h in enumerate(self.headers):
             hx = lr.x + (c_idx * col_w)
-            ht = Assets.FONTS["SUB"].render(h, True, p['accent'])
+            h_trunc = Graphics.truncate_text(h, Assets.FONTS["SUB"], col_w - 20)
+            ht = Assets.FONTS["SUB"].render(h_trunc, True, p['accent'])
             surf.blit(ht, (hx + 10, header_y + 8))
             if c_idx > 0:
                 pygame.draw.line(surf, p['dim'], (hx, header_y), (hx, header_y + 35), 1)
@@ -123,7 +124,8 @@ class DataViewer:
                 
             for c_idx, cell in enumerate(row_data):
                 cx = lr.x + (c_idx * col_w)
-                ct = Assets.FONTS["SUB"].render(str(cell), True, p['text'])
+                cell_trunc = Graphics.truncate_text(str(cell), Assets.FONTS["SUB"], col_w - 20)
+                ct = Assets.FONTS["SUB"].render(cell_trunc, True, p['text'])
                 surf.blit(ct, (cx + 10, fy + 8))
                 if c_idx > 0:
                     pygame.draw.line(surf, (30, 30, 35), (cx, fy), (cx, fy + 35), 1)

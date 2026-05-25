@@ -204,6 +204,32 @@ class Graphics:
         return lines
 
     @staticmethod
+    def truncate_text(text: str, font: pygame.font.Font, max_width: float) -> str:
+        """
+        Truncate text with an ellipsis if it exceeds the maximum width.
+
+        Args:
+            text (str): The input string.
+            font (pygame.font.Font): The font used for size calculations.
+            max_width (float): The maximum width in pixels allowed.
+
+        Returns:
+            str: The original string if it fits, otherwise the truncated string ending with '...'.
+        """
+        if font.size(text)[0] <= max_width:
+            return text
+            
+        ellipsis = "..."
+        if font.size(ellipsis)[0] > max_width:
+            return ""
+            
+        truncated = text
+        while truncated and font.size(truncated + ellipsis)[0] > max_width:
+            truncated = truncated[:-1]
+            
+        return truncated + ellipsis
+
+    @staticmethod
     def get_spline_points(points: List[Tuple[float, float]], num_segments: int = 15) -> List[Tuple[float, float]]:
         """Generates a smooth Catmull-Rom spline through a list of points."""
         if len(points) < 3:
