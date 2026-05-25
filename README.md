@@ -90,6 +90,8 @@ Use your mouse to navigate tabs and select database query actions.
 
 Use the scroll wheel to navigate populated data tables and the live system log.
 
+You can use Sample Data Generator to fill out your tables.
+
 Press ESC to close any active data viewers or graphs.
 
 ## ⚖️ License
