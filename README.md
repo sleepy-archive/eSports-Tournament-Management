@@ -1,5 +1,5 @@
 # ESPORTS DB // TERMINAL
-### "A high-performance Pygame dashboard for professional eSports tournament management."
+### "A high-performance Pygame dashboard for eSports tournament management."
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)
 ![Pygame](https://img.shields.io/badge/Pygame-CE-green?style=flat&logo=python)
