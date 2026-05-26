@@ -34,13 +34,13 @@ class LayoutManager:
         self.graph_viewer = GraphViewer()
         self.form_screen = FormScreen()
         
-        self.tabs = ["OVERVIEW", "TEAMS & PLAYERS", "MATCH TRACKER", "MANAGE DATA", "SYSTEM"]
+        self.tabs = ["OVERVIEW", "ROSTERS & TEAMS", "MATCH TRACKER", "DATABANK OPS", "SETTINGS"]
         self.actions = {
-            'OVERVIEW': ['TOURNAMENT SUMMARY', 'LIVE VENUES', 'PLAYER GRAPH'],
-            'TEAMS & PLAYERS': ['ACTIVE ROSTERS', 'LEADERBOARD', 'ELITE TIER'],
-            'MATCH TRACKER':  ['FULL SCHEDULE', 'AUDIT LOG'],
-            'MANAGE DATA': ['ADD PLAYER', 'UPDATE MATCH', 'DELETE STAT'],
-            'SYSTEM':  ['THEME', 'EXIT']
+            'OVERVIEW': ['AETHERIUM WARS', 'LIVE BROADCASTS', 'COMBAT METRICS'],
+            'ROSTERS & TEAMS': ['ACTIVE ROSTERS', 'GLOBAL STANDINGS', 'ELITE TIER'],
+            'MATCH TRACKER':  ['FULL SCHEDULE', 'MATCH LOGS'],
+            'DATABANK OPS': ['REGISTER PLAYER', 'UPDATE MATCH', 'ERASE RECORD'],
+            'SETTINGS':  ['TOGGLE THEME', 'DISCONNECT']
         }
         
         self.tab_btns = []
@@ -95,11 +95,13 @@ class LayoutManager:
         self._refresh_dock()
 
     def _start_ticker_fetch(self) -> None:
+        """Starts the background thread for fetching ticker data."""
         t = threading.Thread(target=self._fetch_ticker_data)
         t.daemon = True
         t.start()
 
     def _fetch_ticker_data(self) -> None:
+        """Continuously fetches upcoming match broadcasts and fan comments to populate the UI ticker."""
         while True:
             try:
                 rows = self.db.get_upcoming_matches_with_broadcasts()
@@ -147,18 +149,18 @@ class LayoutManager:
             self.ui_queue.put(("LOG", f"QUERYING: {action}"))
             
             rows = []
-            if action == 'TOURNAMENT SUMMARY': rows = self.db.get_tournament_summary()
-            elif action == 'LIVE VENUES': rows = self.db.get_live_venues()
+            if action == 'AETHERIUM WARS': rows = self.db.get_tournament_summary()
+            elif action == 'LIVE BROADCASTS': rows = self.db.get_live_venues()
             elif action == 'ACTIVE ROSTERS': rows = self.db.get_active_rosters()
-            elif action == 'LEADERBOARD': rows = self.db.get_leaderboard()
+            elif action == 'GLOBAL STANDINGS': rows = self.db.get_leaderboard()
             elif action == 'ELITE TIER': rows = self.db.get_elite_tier()
             elif action == 'FULL SCHEDULE': rows = self.db.get_full_schedule()
-            elif action == 'AUDIT LOG': rows = self.db.get_audit_log()
-            elif action == 'PLAYER GRAPH': rows = self.db.get_player_performance_data()
+            elif action == 'MATCH LOGS': rows = self.db.get_audit_log()
+            elif action == 'COMBAT METRICS': rows = self.db.get_player_performance_data()
             
             self.ui_queue.put(("PROGRESS", 1.0))
             time.sleep(0.3) 
-            if action == 'PLAYER GRAPH':
+            if action == 'COMBAT METRICS':
                 self.ui_queue.put(("SHOW_GRAPH", {"title": action, "data": rows}))
             else:
                 self.ui_queue.put(("SHOW_DATA", {"title": action, "data": rows}))
@@ -196,14 +198,21 @@ class LayoutManager:
         t.start()
 
     def _thread_crud_task(self, action: str, values: list) -> None:
+        """
+        Executes a database CRUD operation asynchronously.
+        
+        Args:
+            action (str): The requested database manipulation action.
+            values (list): Form input values to be processed.
+        """
         try:
             self.ui_queue.put(("PROGRESS", 0.4))
             time.sleep(0.3)
             
             res = "UNKNOWN OPERATION"
-            if action == 'ADD PLAYER': res = self.db.add_player(values[0], values[1])
+            if action == 'REGISTER PLAYER': res = self.db.add_player(values[0], values[1])
             elif action == 'UPDATE MATCH': res = self.db.update_match_status(values[0], values[1])
-            elif action == 'DELETE STAT': res = self.db.delete_game_stat(values[0])
+            elif action == 'ERASE RECORD': res = self.db.delete_game_stat(values[0])
             
             self.ui_queue.put(("PROGRESS", 1.0))
             time.sleep(0.3) 
@@ -239,15 +248,15 @@ class LayoutManager:
             app (App): The main application instance.
         """
         if self.loading: return
-        if text == "EXIT":
+        if text == "DISCONNECT":
             pygame.quit()
             sys.exit()
-        elif text == "THEME": 
+        elif text == "TOGGLE THEME": 
             app.toggle_theme()
             self.log.add_log_direct("THEME SWAPPED")
-        elif text == "ADD PLAYER": self.form_screen.open("ADD PLAYER", ["PLAYER NAME", "ROLE (e.g. IGL)"], self.execute_crud)
+        elif text == "REGISTER PLAYER": self.form_screen.open("REGISTER PLAYER", ["PLAYER NAME", "ROLE (e.g. IGL)"], self.execute_crud)
         elif text == "UPDATE MATCH": self.form_screen.open("UPDATE MATCH", ["MATCH ID", "NEW STATUS (e.g. live)"], self.execute_crud)
-        elif text == "DELETE STAT": self.form_screen.open("DELETE STAT", ["STAT ID"], self.execute_crud)
+        elif text == "ERASE RECORD": self.form_screen.open("ERASE RECORD", ["STAT ID"], self.execute_crud)
         else:
             self.execute_task(text)
 
@@ -326,9 +335,9 @@ class LayoutManager:
         """Updates the layout components, processing animations and state changes."""
         self._process_queue() 
         if self.loading: self.vis_load_prog += (self.load_prog - self.vis_load_prog) * 0.2
-        if self.viewer.active: return self.viewer.update()
-        if self.graph_viewer.active: return self.graph_viewer.update()
-        if self.form_screen.active: return self.form_screen.update()
+        if self.viewer.active: self.viewer.update()
+        if self.graph_viewer.active: self.graph_viewer.update()
+        if self.form_screen.active: self.form_screen.update()
 
         if time.time() - self.last_ticker_time > 1.0:
             self.last_ticker_time = time.time()

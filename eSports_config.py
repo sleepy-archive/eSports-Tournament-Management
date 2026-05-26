@@ -19,7 +19,6 @@ class Config:
     FPS: int = 60
     
     # Visual Themes
-    # Each palette defines the color scheme for the UI components.
     PALETTES: List[Dict[str, Any]] = [
         {"name": "CYAN", "bg": (10, 12, 16), "fill": (15, 20, 25), "accent": (0, 255, 255), "dim": (0, 100, 100), "text": (220, 225, 235), "dots": (20, 40, 50)},
         {"name": "ORANGE", "bg": (20, 10, 5), "fill": (30, 15, 10), "accent": (255, 140, 0), "dim": (120, 60, 0), "text": (255, 240, 220), "dots": (60, 30, 10)},
@@ -55,14 +54,11 @@ class Assets:
         
         selected_font_name = "monospace" # Default fallback
         
-        # Check which font is actually available on the system
         for name in valid_fonts:
             if pygame.font.match_font(name):
                 selected_font_name = name
                 break
 
-        # Initialize font objects with specific sizes and styles
-        # SysFont is used here to load from system installed fonts by name.
         Assets.FONTS["MAIN"] = pygame.font.SysFont(selected_font_name, 20, bold=True)
         Assets.FONTS["SUB"] = pygame.font.SysFont(selected_font_name, 16)
         Assets.FONTS["TINY"] = pygame.font.SysFont(selected_font_name, 12)

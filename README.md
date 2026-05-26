@@ -1,4 +1,4 @@
-# ESPORTS DB // TERMINAL
+# ESPORTS DB // TERMINAL (HONKAI STAR RAIL THEMED)
 ### "A high-performance Pygame dashboard for eSports tournament management."
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)

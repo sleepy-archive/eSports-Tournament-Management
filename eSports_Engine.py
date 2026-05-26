@@ -31,7 +31,7 @@ class DatabaseManager:
             cursor.execute(query)
             return cursor.fetchall()
         except Exception as e:
-            return [(f"DB ERROR: {str(e)[:50]}",)] # Return error as a row
+            return [(f"DB ERROR: {str(e)[:50]}",)]
         finally:
             if conn is not None:
                 try: conn.close()
@@ -171,18 +171,50 @@ class DatabaseManager:
 
     def get_player_performance_data(self) -> list:
         """
-        Generates simulated performance data representing a smooth bell-curve trend
-        to populate the custom visual graph rendering.
+        Retrieves performance trends for the top 5 players based on average rating.
+        Fetches the last 15 ratings for each player.
 
         Returns:
-            list: A list of floating-point values representing performance over time.
+            list: A list of dictionaries, each containing a player's name and their rating history.
+                  e.g. [{'name': 'PlayerA', 'ratings': [7.1, 8.2, ...]}, ...]
         """
-        data = []
-        for i in range(20):
-            base = 6.0 + math.sin(i / 19.0 * math.pi) * 3.0
-            noise = random.uniform(-0.5, 0.5)
-            data.append(round(base + noise, 2))
-        return data
+        conn = None
+        try:
+            conn = pyodbc.connect(self.conn_str, timeout=3)
+            cursor = conn.cursor()
+
+            # 1. Get top 5 players by average rating who have played at least 5 games
+            top_players_query = """
+                SELECT TOP 5 p.player_id, p.name
+                FROM PLAYERS p
+                JOIN GAME_STATS gs ON p.player_id = gs.player_id
+                GROUP BY p.player_id, p.name
+                HAVING COUNT(gs.game_id) >= 5
+                ORDER BY AVG(gs.rating) DESC;
+            """
+            cursor.execute(top_players_query)
+            top_players = cursor.fetchall()
+
+            if not top_players: return []
+
+            # 2. For each player, get their last 15 game ratings
+            trends_data = []
+            ratings_query = """
+                SELECT TOP 15 gs.rating FROM GAME_STATS gs
+                JOIN GAMES g ON gs.game_id = g.game_id JOIN MATCHES m ON g.match_id = m.match_id
+                WHERE gs.player_id = ? ORDER BY m.match_date DESC, g.game_id DESC;
+            """
+            for player_id, player_name in top_players:
+                cursor.execute(ratings_query, player_id)
+                ratings_rows = cursor.fetchall()
+                ratings = [row.rating for row in reversed(ratings_rows)]
+                if ratings: trends_data.append({"name": str(player_name), "ratings": ratings})
+            return trends_data
+        except Exception: return [{"name": "DATABASE ERROR", "ratings": [1,1,1]}]
+        finally:
+            if conn is not None:
+                try: conn.close()
+                except Exception: pass
 
     def _execute_non_query(self, query: str, params: tuple) -> str:
         """

@@ -126,3 +126,20 @@ CREATE TABLE MATCH_AUDIT_LOG (
     changed_at DATETIME DEFAULT GETDATE()
 );
 GO
+
+-- 8. Audit Log Trigger
+CREATE TRIGGER trg_MatchStatusUpdate
+ON MATCHES
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(status)
+    BEGIN
+        INSERT INTO MATCH_AUDIT_LOG (match_id, old_status, new_status)
+        SELECT i.match_id, d.status, i.status
+        FROM inserted i
+        JOIN deleted d ON i.match_id = d.match_id
+        WHERE i.status <> d.status;
+    END
+END;
+GO

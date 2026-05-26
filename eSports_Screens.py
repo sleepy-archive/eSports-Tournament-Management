@@ -1,7 +1,7 @@
 import pygame
 import random
 import time
-from typing import List, Any
+from typing import List, Dict, Any
 from eSports_config import Config, Assets
 from eSports_gfx import Graphics
 
@@ -12,7 +12,7 @@ class DataViewer:
         self.active: bool = False
         self.headers: List[str] = []
         self.data_rows: List[List[str]] = []
-        self.prompt_text: str = "DATABASE RESULTS"
+        self.prompt_text: str = "DATABANK RESULTS"
         
         self.scroll_y: float = 0.0
         self.tgt_scroll: float = 0.0
@@ -143,7 +143,7 @@ class GraphViewer:
     def __init__(self) -> None:
         """Initializes the GraphViewer component."""
         self.active: bool = False
-        self.data_points: List[float] = []
+        self.datasets: List[Dict[str, Any]] = []
         self.prompt_text: str = "PERFORMANCE TRENDS"
         
         self.overlay = pygame.Surface((Config.WIDTH, Config.HEIGHT))
@@ -157,20 +157,21 @@ class GraphViewer:
     def recalc_layout(self) -> None:
         """Recalculates the layout dimensions based on the current window size."""
         cx, cy = Config.WIDTH // 2, Config.HEIGHT // 2
-        self.rect = pygame.Rect(cx - 400, cy - 250, 800, 500)
+        self.rect = pygame.Rect(cx - 450, cy - 250, 900, 500)
         self.action_btn_rect = pygame.Rect(self.rect.right - 220, self.rect.bottom - 60, 200, 40)
 
-    def open(self, title: str, data: List[float]) -> None:
+    def open(self, title: str, data: List[Dict[str, Any]]) -> None:
         """
         Opens the graph viewer with the provided dataset.
 
         Args:
             title (str): The title of the graph.
-            data (List[float]): A list of numerical data points to plot.
+            data (List[Dict[str, Any]]): A list of datasets to plot. 
+                                         Each dict should have 'name' and 'ratings'.
         """
         self.active = True
         self.prompt_text = title
-        self.data_points = data
+        self.datasets = data
 
     def update(self) -> None:
         """Updates the internal state and animations of the graph viewer."""
@@ -206,8 +207,8 @@ class GraphViewer:
         surf.blit(t, (self.rect.x + 30, self.rect.y + 20)) 
 
         # Plot Background Area
-        gx, gy = self.rect.x + 50, self.rect.y + 80
-        gw, gh = self.rect.width - 100, self.rect.height - 160
+        gx, gy = self.rect.x + 40, self.rect.y + 80
+        gw, gh = self.rect.width - 230, self.rect.height - 160
         pygame.draw.rect(surf, (15, 15, 20), (gx, gy, gw, gh))
         pygame.draw.rect(surf, p['dim'], (gx, gy, gw, gh), 1)
         
@@ -215,32 +216,58 @@ class GraphViewer:
             y_line = gy + i * (gh / 5)
             pygame.draw.line(surf, (30, 30, 40), (gx, y_line), (gx + gw, y_line))
             
-        if self.data_points:
-            min_val, max_val = min(self.data_points), max(self.data_points)
+        if self.datasets:
+            # Custom bluer tones for better readability without clashing
+            line_colors = [(0, 255, 255), (50, 150, 250), (120, 200, 255), (0, 100, 200), (180, 230, 255)]
+
+            all_ratings = [rating for dataset in self.datasets for rating in dataset.get('ratings', [])]
+            if not all_ratings: return
+            
+            min_val, max_val = min(all_ratings), max(all_ratings)
             val_range = max(0.1, max_val - min_val) 
             
-            # Translate points to screen coordinates
-            screen_points = []
-            for i, val in enumerate(self.data_points):
-                px = gx + (i / max(1, len(self.data_points) - 1)) * gw
-                py = gy + gh - ((val - min_val) / val_range) * gh
-                screen_points.append((px, py))
-                
-            # Interpolate for smoothness
-            smooth_pts = Graphics.get_spline_points(screen_points, 15)
-            if len(smooth_pts) > 1:
-                pygame.draw.aalines(surf, p['accent'], False, smooth_pts)
-                for point in smooth_pts:
-                    pygame.draw.circle(surf, p['dim'], (int(point[0]), int(point[1])), 2)
+            legend_x, legend_y = gx + gw + 30, gy
 
-            # Draw individual dots and value labels
-            for i, (px, py) in enumerate(screen_points):
-                pygame.draw.circle(surf, p['accent'], (int(px), int(py)), 5)
-                pygame.draw.circle(surf, p['bg'], (int(px), int(py)), 3)
-                val = self.data_points[i]
-                lbl = Assets.FONTS["TINY"].render(f"{val:.1f}", True, p['text'])
-                surf.blit(lbl, (px - lbl.get_width()//2, py - 18))
-                
+            # Draw legend with colors
+            for i, dataset in enumerate(self.datasets):
+                color = line_colors[i % len(line_colors)]
+                player_name = dataset.get('name', 'Unknown')
+                pygame.draw.rect(surf, color, (legend_x, legend_y + i * 30, 15, 15))
+                name_surf = Assets.FONTS["SUB"].render(player_name, True, p['text'])
+                surf.blit(name_surf, (legend_x + 25, legend_y + i * 30))
+
+            # Draw each player's data
+            for i, dataset in enumerate(self.datasets):
+                ratings = dataset.get('ratings', [])
+                if not ratings: continue
+
+                color = line_colors[i % len(line_colors)]
+                screen_points = []
+                num_points = len(ratings)
+                for pt_idx, val in enumerate(ratings):
+                    px = gx + (pt_idx / max(1, num_points - 1)) * gw
+                    py = gy + gh - ((val - min_val) / val_range) * gh
+                    screen_points.append((px, py))
+                    
+                # Interpolate for smoothness - increased segments for quality
+                smooth_pts = Graphics.get_spline_points(screen_points, 30)
+                if len(smooth_pts) > 1:
+                    # Draw a slightly thicker line by drawing twice
+                    pygame.draw.aalines(surf, color, False, smooth_pts)
+                    offset_pts = [(pt[0], pt[1] + 1) for pt in smooth_pts]
+                    pygame.draw.aalines(surf, color, False, offset_pts)
+
+                # Draw individual dots and value labels
+                for pt_idx, (px, py) in enumerate(screen_points):
+                    pygame.draw.circle(surf, color, (int(px), int(py)), 5)
+                    pygame.draw.circle(surf, p['bg'], (int(px), int(py)), 3)
+                    
+                    # Only draw labels for first and last points to avoid clutter
+                    if pt_idx == 0 or pt_idx == len(screen_points) - 1:
+                        val = ratings[pt_idx]
+                        lbl = Assets.FONTS["TINY"].render(f"{val:.1f}", True, p['text'])
+                        surf.blit(lbl, (px - lbl.get_width() // 2, py - 20))
+
         Graphics.draw_chamfered_rect(surf, self.action_btn_rect, p['fill'], 0)
         Graphics.draw_chamfered_rect(surf, self.action_btn_rect, p['accent'], 2)
         a_t = Assets.FONTS["MAIN"].render("CLOSE GRAPH", True, p['accent'])
@@ -282,6 +309,7 @@ class FormScreen:
         self.submit_cb = submit_cb
 
     def update(self) -> None:
+        """Updates internal state; acts as a placeholder for future form animations."""
         pass
 
     def handle(self, e: pygame.event.Event) -> None:

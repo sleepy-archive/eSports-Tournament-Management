@@ -86,16 +86,35 @@ TOTAL_MATCHES = 300
 TOTAL_GAMES = 1000    
 
 def random_date(start_year=2024, end_year=2026):
+    """
+    Generates a random date within the specified year range.
+    
+    Args:
+        start_year (int): The earliest allowed year.
+        end_year (int): The latest allowed year.
+        
+    Returns:
+        datetime.date: A randomized date object.
+    """
     start = date(start_year, 1, 1)
     end = date(end_year, 12, 31)
     return start + timedelta(days=random.randint(0, (end - start).days))
 
-# Helper to escape single quotes for SQL
 def esc(val):
+    """Escapes single quotes in strings to prevent SQL syntax errors."""
     return str(val).replace("'", "''")
 
-# Helper to chunk large inserts to avoid SQL Server's 1000 row limit
 def write_batches(f, table_name, columns, rows, batch_size=900):
+    """
+    Writes INSERT statements in chunks to circumvent SQL Server's 1000 row limit.
+    
+    Args:
+        f (file object): The open file handle to write into.
+        table_name (str): The name of the target database table.
+        columns (str): Comma-separated string of column names.
+        rows (list): A list of formatted value strings to insert.
+        batch_size (int): The maximum number of rows per INSERT statement.
+    """
     for i in range(0, len(rows), batch_size):
         batch = rows[i:i + batch_size]
         f.write(f"INSERT INTO {table_name} ({columns}) VALUES\n")

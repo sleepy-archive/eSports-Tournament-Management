@@ -60,7 +60,6 @@ class FloatingHex:
         self.y -= self.speed
         self.rotation += 0.2
         
-        # Boundary check: If it floats off the top, reset it to the bottom.
         if self.y < -50: 
             self.size = random.randint(20, 50)
             self.x = random.randint(0, Config.WIDTH)
@@ -96,7 +95,6 @@ class EsportsCoreLog:
         self.imp_rect: pygame.Rect = pygame.Rect(0, 0, 0, 0)
         self.std_rect: pygame.Rect = pygame.Rect(0, 0, 0, 0)
         
-        # Cache the background surface to avoid per-frame allocation
         self._cached_glass: Optional[pygame.Surface] = None
         
         self.imp_msg: str = "TOURNAMENT UPDATES"
@@ -112,8 +110,8 @@ class EsportsCoreLog:
         
         self.recalc_layout()
         
-        self.add_log_direct("KERNEL_INIT_OK")
-        self.add_log_direct("ESPORTS DAEMON STARTED")
+        self.add_log_direct("DATABANK_INIT_OK")
+        self.add_log_direct("INTERASTRAL NETWORK CONNECTED")
 
     def recalc_layout(self) -> None:
         """
@@ -125,7 +123,6 @@ class EsportsCoreLog:
         self.imp_rect = pygame.Rect(self.rect.x + 10, self.rect.y + 10, self.rect.width - 20, 40)
         self.std_rect = pygame.Rect(self.rect.x + 10, self.rect.y + 80, self.rect.width - 20, 150)
         
-        # Create a semi-transparent background surface once
         self._cached_glass = pygame.Surface(self.rect.size, pygame.SRCALPHA)
 
     def set_important(self, text: str) -> None:
@@ -146,12 +143,17 @@ class EsportsCoreLog:
             text (str): The log message.
         """
         t_str = datetime.datetime.now().strftime("%H:%M:%S")
+        prefix_first = f"[{t_str}] "
+        prefix_indent = " " * len(prefix_first)
         
-        # Wrap text to fit the log width
-        lines = Graphics.wrap_text(text, Assets.FONTS["TINY"], self.std_rect.width - 10)
+        # Calculate available width by subtracting the prefix render width
+        prefix_width = Assets.FONTS["TINY"].size(prefix_first)[0]
+        available_width = self.std_rect.width - 10 - prefix_width
+
+        lines = Graphics.wrap_text(text, Assets.FONTS["TINY"], available_width)
         
         for i, line in enumerate(lines):
-            prefix = f"[{t_str}] " if i == 0 else "          "
+            prefix = prefix_first if i == 0 else prefix_indent
             self.std_logs.append(f"{prefix}{line}")
         
         # Prune old logs to prevent memory bloat
@@ -159,7 +161,6 @@ class EsportsCoreLog:
             self.std_logs = self.std_logs[-500:]
             
         # Auto-scroll to bottom
-        # We set target to a very low number; update() will clamp it to the valid range.
         self.tgt_std = -float('inf')
 
     def handle_input(self, event: pygame.event.Event) -> None:
@@ -175,7 +176,6 @@ class EsportsCoreLog:
                 visible_h = self.std_rect.height - 10
                 total_h = len(self.std_logs) * self.line_height
                 
-                # Scroll speed constant
                 scroll_step = 40
                 
                 if event.button == 4: # Scroll Up
@@ -193,7 +193,6 @@ class EsportsCoreLog:
             self.tgt_std = 0
         else:
             min_scroll = -(total_h - visible_h)
-            # Clamp target scroll to valid bounds
             if self.tgt_std < min_scroll: 
                 self.tgt_std = min_scroll
             if self.tgt_std > 0: 
@@ -211,7 +210,6 @@ class EsportsCoreLog:
             palette (Dict[str, Any]): Color palette.
         """
         # 1. Draw Background
-        # Re-fill cached surface to support palette changes without re-allocation
         if self._cached_glass is None:
              self._cached_glass = pygame.Surface(self.rect.size, pygame.SRCALPHA)
         
@@ -239,7 +237,7 @@ class EsportsCoreLog:
         surf.blit(t, t.get_rect(center=self.imp_rect.center))
 
         # 3. Draw Header
-        head = Assets.FONTS["TINY"].render("EVENT_LOG // HISTORY", True, palette['dim'])
+        head = Assets.FONTS["TINY"].render("MATCH_LOG // HISTORY", True, palette['dim'])
         surf.blit(head, (self.std_rect.x, self.std_rect.y - 15))
         
         # 4. Draw Logs (Clipped)
@@ -247,16 +245,10 @@ class EsportsCoreLog:
         
         start_y = self.std_rect.y + 5 + self.scroll_std
         
-        # Optimization: Calculate visible index range to avoid iterating all logs
-        # y = start_y + i * line_height
-        # Visible if: y + line_height > rect.top AND y < rect.bottom
-        
-        # i * line_height > rect.top - start_y - line_height
-        # i > (rect.top - start_y - line_height) / line_height
+        # Optimization: Calculate mathematically which logs are currently visible based on scroll offset.
         first_idx = int((self.std_rect.y - start_y - self.line_height) / self.line_height)
         first_idx = max(0, first_idx)
         
-        # i * line_height < rect.bottom - start_y
         last_idx = int((self.std_rect.bottom - start_y) / self.line_height)
         last_idx = min(len(self.std_logs), last_idx + 1)
         
@@ -299,26 +291,25 @@ class CentralCore:
         self.arrow_r: int = 0
         self.bob_phase: float = 0.0
         
-        # Mapping of action keywords to user-friendly descriptions
         self.desc_map: Dict[str, str] = {
-            "TOURNAMENT SUMMARY": "VIEW DASHBOARD // STAGES & DATES",
-            "LIVE VENUES": "ACTIVE LOCATIONS // ONGOING MATCHES",
-            "ACTIVE ROSTERS": "PLAYER ASSIGNMENTS // TEAM DB",
-            "LEADERBOARD": "GLOBAL STATS // POINTS & RATING",
-            "ELITE TIER": "TOP PERFORMERS // ABOVE AVERAGE",
-            "FULL SCHEDULE": "MATCH CALENDAR // ALL STAGES",
-            "AUDIT LOG": "SYSTEM LOG // STATUS CHANGES",
-            "EXIT": "TERMINATE SESSION",
-            "THEME": "VISUAL CONFIG // TOGGLE",
-            "PLAYER GRAPH": "PERFORMANCE METRICS // TRENDS",
-            "OVERVIEW": "SYSTEM OVERVIEW // SUMMARY",
-            "MANAGE DATA": "DATABASE OPS // CRUD",
-            "ADD PLAYER": "INSERT // NEW PLAYER ENTRY",
+            "AETHERIUM WARS": "TOURNAMENT DASHBOARD // STAGES & DATES",
+            "LIVE BROADCASTS": "INTERASTRAL FEEDS // ONGOING MATCHES",
+            "ACTIVE ROSTERS": "COMPETITOR ASSIGNMENTS // TEAM DB",
+            "GLOBAL STANDINGS": "LEADERBOARD // POINTS & RATING",
+            "ELITE TIER": "TOP PERFORMERS // WARP TIER",
+            "FULL SCHEDULE": "MATCH CALENDAR // ALL BRACKETS",
+            "MATCH LOGS": "AUDIT LOG // STATUS CHANGES",
+            "DISCONNECT": "TERMINATE SESSION // OFFLINE",
+            "TOGGLE THEME": "VISUAL CONFIG // OPTICS TOGGLE",
+            "COMBAT METRICS": "PERFORMANCE TRENDS // METRICS",
+            "OVERVIEW": "AETHERIUM WARS // SUMMARY",
+            "DATABANK OPS": "ROSTER OPS // DATABANK EDIT",
+            "REGISTER PLAYER": "REGISTER // NEW COMPETITOR",
             "UPDATE MATCH": "UPDATE // MATCH STATUS",
-            "DELETE STAT": "DELETE // GAME STAT RECORD",
-            "TEAMS & PLAYERS": "DATABASE LOOKUP // ROSTERS",
-            "MATCH TRACKER": "LIVE UPDATES // SCHEDULING",
-            "SYSTEM": "CONFIG // TERMINATE"
+            "ERASE RECORD": "ERASE // GAME STAT RECORD",
+            "ROSTERS & TEAMS": "DATABANK // COMBATANTS",
+            "MATCH TRACKER": "LIVE FEEDS // SCHEDULING",
+            "SETTINGS": "SYSTEM CONFIG // ASTRAL EXPRESS"
         }
 
     def set_status(self, txt: str, custom_desc: Optional[str] = None) -> None:
@@ -332,7 +323,6 @@ class CentralCore:
         """
         desc = custom_desc if custom_desc else self.desc_map.get(txt, "SELECTED // ACTIVE")
         
-        # Only trigger animation if text changes
         if txt != self.tgt_txt or custom_desc:
             self.tgt_txt, self.tgt_desc = txt, desc
             self.state = "OUT"
@@ -343,24 +333,20 @@ class CentralCore:
         self.rot_b -= 0.3
         self.bob_phase += 0.1
         
-        # Decay arrow highlights
         if self.arrow_l > 0: self.arrow_l -= 1
         if self.arrow_r > 0: self.arrow_r -= 1
 
         # Text Transition State Machine
         if self.state == "OUT":
-            # Slide out to the left and fade
             self.off_x += (-100 - self.off_x) * 0.1
             self.alpha = max(0, self.alpha - 20)
             
             if self.alpha <= 0:
-                # Swap text and reset position for entry
                 self.disp_txt, self.disp_desc = self.tgt_txt, self.tgt_desc
                 self.off_x = 100
                 self.state = "IN"
                 
         elif self.state == "IN":
-            # Slide in from the right and fade in
             self.off_x += (0 - self.off_x) * 0.1
             self.alpha = min(255, self.alpha + 20)
             
@@ -398,7 +384,7 @@ class CentralCore:
 
         # Draw Clock
         t_str = datetime.datetime.now().strftime("%H:%M:%S")
-        clock_text = Assets.FONTS["CLOCK"].render(f"SYS_TIME // {t_str}", True, palette['dim'])
+        clock_text = Assets.FONTS["CLOCK"].render(f"INTERASTRAL_TIME // {t_str}", True, palette['dim'])
         surf.blit(clock_text, clock_text.get_rect(center=(cx, cy-70)))
 
         # Draw Status Text
@@ -432,7 +418,6 @@ class FloatyButton:
         self.cur_y: float = float(y)
         self.offset = random.uniform(0, 10)
         
-        # Cache for rendered text surfaces to avoid re-rendering every frame
         self._cached_text_surf: Optional[pygame.Surface] = None
         self._cached_text_sel_surf: Optional[pygame.Surface] = None
         self._last_palette_name: Optional[str] = None
@@ -444,10 +429,8 @@ class FloatyButton:
         Args:
             selected (bool): Whether the button is currently focused.
         """
-        # Target Y changes if selected (moves up slightly)
         target = self.base_y + (-8 if selected else 0) + (math.sin(time.time()*2 + self.offset)*2)
         
-        # Smooth interpolation
         self.cur_y += (target - self.cur_y) * 0.05
         self.rect.y = int(self.cur_y)
 
@@ -460,10 +443,7 @@ class FloatyButton:
             selected (bool): Focus state.
             p (Dict[str, Any]): Color palette.
         """
-        # Check if we need to regenerate cached text (e.g., if palette changed)
-        # We assume palette name is unique or we just check text color match.
-        # For simplicity, we'll check if cache exists. In a real app, we'd check palette version.
-        # Here we just check if it's None or if we want to be robust against palette swaps.
+        # Regenerate cached text surfaces if the palette changes.
         if self._cached_text_surf is None or self._last_palette_name != p.get('name', ''):
             self._last_palette_name = p.get('name', '')
             self._cached_text_surf = Assets.FONTS["MAIN"].render(self.text, True, (150, 150, 150))
@@ -473,11 +453,9 @@ class FloatyButton:
         
         col = p['accent'] if selected else p['dim']
         
-        # Draw background and border
         Graphics.draw_chamfered_rect(surf, draw_rect, p['fill'], 0)
         Graphics.draw_chamfered_rect(surf, draw_rect, col, 3 if selected else 2)
         
-        # Blit cached text
         txt_surf = self._cached_text_sel_surf if selected else self._cached_text_surf
         if txt_surf:
             surf.blit(txt_surf, txt_surf.get_rect(center=self.rect.center))

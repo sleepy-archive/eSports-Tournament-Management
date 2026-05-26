@@ -11,9 +11,8 @@ class Graphics:
     generating background grids, and handling text layout (wrapping). It utilizes caching
     to optimize rendering performance for static elements like the background grid.
     """
-    
-    # Cache for the background dot grid to prevent expensive redraws every frame.
-    # Stores a tuple of (Surface, Color) to ensure the cache is invalidated if the requested color changes.
+
+    # Cache for the background dot grid to prevent expensive redraws.
     _grid_cache: Optional[Tuple[pygame.Surface, Tuple[int, int, int]]] = None
 
     @staticmethod
@@ -31,28 +30,20 @@ class Graphics:
         Returns:
             pygame.Surface: A surface containing the rendered dot grid.
         """
-        # Check if we have a valid cache and if the requested color matches the cached one.
         if Graphics._grid_cache is not None:
             cached_surface, cached_color = Graphics._grid_cache
             if cached_color == color:
                 return cached_surface
 
-        # Initialize a new surface with transparency support.
-        # We use Config.WIDTH and Config.HEIGHT to ensure it covers the screen.
         surface = pygame.Surface((Config.WIDTH, Config.HEIGHT))
-        
-        # Set the colorkey to black (0,0,0) to make the background transparent,
-        # assuming the dots are drawn on top of this "transparent" black.
         surface.set_colorkey((0, 0, 0))
         surface.fill((0, 0, 0))
 
-        # Draw dots in a grid pattern.
-        # Step size of 30 pixels creates the spacing between dots.
+        # Draw dots in a grid pattern with 30px spacing.
         for x in range(0, Config.WIDTH, 30):
             for y in range(0, Config.HEIGHT, 30):
                 pygame.draw.circle(surface, color, (x, y), 1)
 
-        # Update the cache with the new surface and the color used to generate it.
         Graphics._grid_cache = (surface, color)
         return surface
 
@@ -93,8 +84,7 @@ class Graphics:
         else:
             x, y, w, h = rect
 
-        # Define the 8 points that form the chamfered polygon.
-        # We start from top-left (offset by cut) and move clockwise.
+        # Calculate the 8 points of the chamfered polygon starting top-left, moving clockwise.
         points = [
             (x + cut, y),       # Top-Left (start of top edge)
             (x + w - cut, y),   # Top-Right (end of top edge)
@@ -106,14 +96,11 @@ class Graphics:
             (x, y + cut)        # Top-Left (end of left edge)
         ]
 
-        # If drawing a filled shape (width=0), draw a shadow first for depth.
+        # Draw drop shadow for filled shapes.
         if width == 0:
-            # Offset shadow points by 4 pixels down and right.
             shadow_points = [(p[0] + 4, p[1] + 4) for p in points]
-            # Draw shadow with a dark color (almost black).
             pygame.draw.polygon(surf, (5, 5, 5), shadow_points)
 
-        # Draw the main polygon.
         pygame.draw.polygon(surf, color, points, width)
 
     @staticmethod
@@ -139,19 +126,14 @@ class Graphics:
             width (int, optional): Line thickness. Defaults to 2.
         """
         points = []
-        # A hexagon has 6 vertices. We calculate each using polar coordinates.
         for i in range(6):
-            # Calculate angle: 60 degrees per segment + global rotation.
-            # Convert to radians for math functions.
             ang_deg = 60 * i + rotation
             ang_rad = math.radians(ang_deg)
             
-            # Convert polar (radius, angle) to cartesian (x, y).
             px = x + radius * math.cos(ang_rad)
             py = y + radius * math.sin(ang_rad)
             points.append((px, py))
 
-        # Draw the closed polygon connecting the 6 points.
         pygame.draw.polygon(surf, color, points, width)
 
     @staticmethod
@@ -177,27 +159,20 @@ class Graphics:
         current_line = []
 
         for word in words:
-            # Test if adding the next word exceeds the max width.
-            # We join with a space to simulate the actual rendered line.
             test_line_words = current_line + [word]
             test_line_str = ' '.join(test_line_words)
             
-            # font.size returns (width, height). We only care about width [0].
             if font.size(test_line_str)[0] < max_width:
                 current_line.append(word)
             else:
-                # If the line is too long, push the current line to results
-                # and start a new line with the current word.
                 if current_line:
                     lines.append(' '.join(current_line))
                     current_line = [word]
                 else:
                     # Edge case: The word itself is wider than max_width.
-                    # We must force it onto the line to avoid infinite loops or dropping words.
                     lines.append(word)
                     current_line = []
 
-        # Append any remaining text in the buffer.
         if current_line:
             lines.append(' '.join(current_line))
             
