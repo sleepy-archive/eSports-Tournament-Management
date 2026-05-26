@@ -89,7 +89,7 @@ PALETTES: List[Dict[str, Any]] = [
 **C. Display Resolution (`eSports_config.py`)**
 The terminal runs at `1280x720` by default. You can adjust the `WIDTH`, `HEIGHT`, and `FPS` limits directly at the top of the `Config` class to fit your monitor.
 
-## 🎮 Usage
+## 🎮 Navigating the Dreamscape (Usage)
 Launch the terminal dashboard by executing the core script:
 
 ```
