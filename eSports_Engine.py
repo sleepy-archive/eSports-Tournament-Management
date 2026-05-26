@@ -58,13 +58,21 @@ class DatabaseManager:
             dict: A dictionary containing 'headers' and 'rows' for the UI table.
         """
         query = """
-            SELECT name, location, is_online FROM VENUES v
-            WHERE EXISTS (SELECT 1 FROM MATCHES m WHERE m.venue_id = v.venue_id AND m.status = 'live');
+            WITH LiveVenues AS (
+                SELECT DISTINCT v.name, v.location, v.is_online, b.platform
+                FROM VENUES v
+                JOIN MATCHES m ON v.venue_id = m.venue_id
+                LEFT JOIN BROADCASTS b ON m.match_id = b.match_id
+                WHERE m.status = 'live'
+            )
+            SELECT name, location, is_online, COALESCE(STRING_AGG(platform, ', '), 'N/A')
+            FROM LiveVenues
+            GROUP BY name, location, is_online;
         """
         rows = self._fetch_data(query)
         if not rows: return {"headers": ["MESSAGE"], "rows": [["NO LIVE MATCHES FOUND"]]}
         if isinstance(rows[0][0], str) and rows[0][0].startswith("DB ERROR"): return {"headers": ["ERROR"], "rows": [[r[0]] for r in rows]}
-        return {"headers": ["VENUE NAME", "LOCATION", "ONLINE STATUS"], "rows": [[str(r[0]), str(r[1]), "ONLINE" if r[2] else "OFFLINE"] for r in rows]}
+        return {"headers": ["VENUE NAME", "LOCATION", "ONLINE STATUS", "PLATFORM(S)"], "rows": [[str(r[0]), str(r[1]), "ONLINE" if r[2] else "OFFLINE", str(r[3])] for r in rows]}
 
     def get_active_rosters(self) -> dict:
         """

@@ -1,0 +1,52 @@
+USE EsportsTournament;
+GO
+
+-- =========================================================
+-- STEP 1: DELETE DATA IN REVERSE DEPENDENCY ORDER
+-- =========================================================
+
+-- 4th Level Dependents
+DELETE FROM GAME_STATS;
+
+-- 3rd Level Dependents
+DELETE FROM GAMES;
+DELETE FROM BROADCASTS;
+
+-- 2nd Level Dependents
+DELETE FROM MATCHES;
+
+-- 1st Level Dependents
+DELETE FROM TOURNAMENT_STAGES;
+DELETE FROM PLAYER_HISTORY;
+
+-- Independent / Base Tables
+DELETE FROM TOURNAMENTS;
+DELETE FROM TEAMS;
+DELETE FROM VENUES;
+DELETE FROM PLAYERS;
+DELETE FROM PATCHES;
+DELETE FROM MAPS;
+
+-- Standalone Audit Table
+DELETE FROM MATCH_AUDIT_LOG;
+GO
+
+-- =========================================================
+-- STEP 2: RESET ALL AUTO-INCREMENT (IDENTITY) IDs
+-- =========================================================
+
+-- Setting the RESEED to 0 ensures the next inserted record starts at 1
+DBCC CHECKIDENT ('GAME_STATS', RESEED, 0);
+DBCC CHECKIDENT ('GAMES', RESEED, 0);
+DBCC CHECKIDENT ('BROADCASTS', RESEED, 0);
+DBCC CHECKIDENT ('MATCHES', RESEED, 0);
+DBCC CHECKIDENT ('TOURNAMENT_STAGES', RESEED, 0);
+DBCC CHECKIDENT ('PLAYER_HISTORY', RESEED, 0);
+DBCC CHECKIDENT ('TOURNAMENTS', RESEED, 0);
+DBCC CHECKIDENT ('TEAMS', RESEED, 0);
+DBCC CHECKIDENT ('VENUES', RESEED, 0);
+DBCC CHECKIDENT ('PLAYERS', RESEED, 0);
+DBCC CHECKIDENT ('PATCHES', RESEED, 0);
+DBCC CHECKIDENT ('MAPS', RESEED, 0);
+DBCC CHECKIDENT ('MATCH_AUDIT_LOG', RESEED, 0);
+GO
