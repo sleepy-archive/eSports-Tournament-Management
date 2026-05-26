@@ -3,6 +3,7 @@ import queue
 import threading
 import time
 import pygame
+import random
 
 import eSports_Engine as db_engine
 from eSports_config import Assets, Config
@@ -48,7 +49,69 @@ class LayoutManager:
         self._top_bar_surf = None
         self._overlay_surf = None
 
+        self.last_ticker_time = time.time()
+        self.ticker_items = []
+        self.ticker_idx = 0
+        
+        self.fan_names = [
+            "Kafka", "Silver Wolf", "Blade", "Dan Heng", "March 7th", "Jing Yuan", 
+            "Seele", "Bronya", "Himeko", "Welt", "Acheron", "Aventurine", "Black Swan", 
+            "Sparkle", "Skott", "Firefly", "Ruan Mei", "Dr. Ratio", "Topaz", "Jade", 
+            "Sunday", "Robin", "Gallagher", "Boothill", "Tingyun", "Qingque", "Clara", 
+            "Hook", "Sampo", "Guinaifen", "Huohuo", "Feixiao", "Lingsha", "Moze", "Yunli",
+            "Pom-Pom", "Peppy", "Diting", "Clockie", "Hanunue", "Origami_Bird",
+            "TrashCanEnthusiast", "Nameless_001", "IPC_Worker_404", "Belobog_Citizen", 
+            "Xianzhou_Local", "Penacony_Dreamer", "Herta_Puppet_013", "Gamer_SilverWolf_Fan", 
+            "Masked_Fool_99", "Elation_Follower", "Trailblazer_Simp", "Galactic_Batter", 
+            "Astral_Express_Conductor", "Cloud_Knight_Recruit", "Trotter_Lover", 
+            "Praise_The_Amber_Lord", "Genius_Society_Fan"
+        ]
+        self.fan_comments = [
+            "Excited, can't wait!", "This is going to be epic!", "My bets are in!", 
+            "Let's gooooo!", "I hope they play well.", "Hype!!", "Will be watching live!", 
+            "Can't believe this matchup!!", "WOOF WOOF BARK BARK!", "ALL IN!", 
+            "I rate this match 0 points!", "May the best team win.", "Setting seas ablaze!", 
+            "Is there a prize for guessing the winner?", "I'll stream this later!", 
+            "Good luck, have fun!", "Skill issue if they lose this.", "Such a beautiful play!", 
+            "Can't wait to analyze the stats.", "Who's the sponsor for this?", 
+            "Are we getting free Stellar Jades for watching?", "Absolute cinema.",
+            "Praise the Amber Lord!", "Where's Pom-Pom when you need them?", 
+            "I bet 500 Stellar Jades on this!", "This match is pure Elation!", 
+            "My dreamscape connection is lagging, who's winning?", "gg ez", "What a throw!", 
+            "Is this broadcast sponsored by the IPC?", "I should be researching, but this is too good.", 
+            "Rules are made to be broken!", "They need to buff Destruction characters.", 
+            "Harmony supports diff.", "If they lose, I'm jumping into a trash can.", 
+            "Are we getting a rerun of this match?", "Clockie says: Tick-tock, time's up!", 
+            "May this match be blessed by Akivili.", "Bro forgot to bring a healer.", 
+            "That ultimate was perfectly timed!", "I've been waiting for this matchup since the Amber Era started.", 
+            "Can they beat the Antimatter Legion though?", "The Swarm is less annoying than that team's comp.", 
+            "I'm shaking right now!", "Penacony's stadium looks amazing on stream.", 
+            "Who let bro cook???", "Boooooring, next match please.", "Wait, did they just do that?!", 
+            "I need a highlight clip of that ASAP.", "This is going down in the Data Bank!"
+        ]
+        
+        self._start_ticker_fetch()
+
         self._refresh_dock()
+
+    def _start_ticker_fetch(self) -> None:
+        t = threading.Thread(target=self._fetch_ticker_data)
+        t.daemon = True
+        t.start()
+
+    def _fetch_ticker_data(self) -> None:
+        while True:
+            try:
+                rows = self.db.get_upcoming_matches_with_broadcasts()
+                if rows:
+                    items = []
+                    for r in rows:
+                        items.append(f"{r[0]} VS {r[1]} @ {r[2]} [LIVE: {r[3]}]")
+                        items.append(f"@{random.choice(self.fan_names)}: {random.choice(self.fan_comments)}")
+                    self.ui_queue.put(("TICKER_UPDATE", items))
+            except Exception:
+                pass
+            time.sleep(60)
 
     def _refresh_dock(self) -> None:
         """Refreshes the navigation buttons based on the current active tab."""
@@ -163,6 +226,7 @@ class LayoutManager:
                 elif kind == "SHOW_DATA": self.viewer.open(data['title'], data['data']['headers'], data['data']['rows'])
                 elif kind == "SHOW_GRAPH": self.graph_viewer.open(data['title'], data['data'])
                 elif kind == "FINISH": self.loading = False
+                elif kind == "TICKER_UPDATE": self.ticker_items = data
         except queue.Empty:
             pass
 
@@ -265,6 +329,19 @@ class LayoutManager:
         if self.viewer.active: return self.viewer.update()
         if self.graph_viewer.active: return self.graph_viewer.update()
         if self.form_screen.active: return self.form_screen.update()
+
+        if time.time() - self.last_ticker_time > 1.0:
+            self.last_ticker_time = time.time()
+            
+            # Silver Wolf Easter Egg (5% chance per tick)
+            if random.random() < 0.05:
+                self.log.is_hacked = True
+                self.log.hack_msg = random.choice(["SYSTEM INTEGRITY COMPROMISED", "SILVER_WOLF.EXE // HACK FAILED", "UNAUTHORIZED ACCESS DETECTED"])
+            else:
+                self.log.is_hacked = False
+                if self.ticker_items:
+                    self.ticker_idx = (self.ticker_idx + 1) % len(self.ticker_items)
+                    self.log.set_important(self.ticker_items[self.ticker_idx])
             
         self.log.update()
         self.core.update()
@@ -350,6 +427,12 @@ class App:
         
         self.layout = LayoutManager()
         self.bg_hexes = [FloatingHex(Config.PALETTES[0]) for _ in range(30)]
+        
+        try:
+            pygame.mixer.music.load("assets/Game Time! · Planarcadia Battle Theme - Honkai_ Star Rail 4.0 OST.mp3")
+            pygame.mixer.music.play(-1)
+        except Exception:
+            pass
 
     def toggle_theme(self) -> None:
         """Cycles through the available visual color themes."""

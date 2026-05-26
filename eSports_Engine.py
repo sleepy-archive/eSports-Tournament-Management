@@ -154,6 +154,21 @@ class DatabaseManager:
         if isinstance(rows[0][0], str) and rows[0][0].startswith("DB ERROR"): return {"headers": ["ERROR"], "rows": [[r[0]] for r in rows]}
         return {"headers": ["MATCH ID", "OLD STATUS", "NEW STATUS", "TIMESTAMP"], "rows": [[str(r[0]), str(r[1]), str(r[2]), str(r[3])[:16]] for r in rows]}
 
+    def get_upcoming_matches_with_broadcasts(self) -> list:
+        """Retrieves upcoming matches with their venues and broadcast platforms."""
+        query = """
+            SELECT t1.team_name, t2.team_name, v.name, COALESCE(b.platform, 'Local')
+            FROM MATCHES m
+            JOIN TEAMS t1 ON m.team1_id = t1.team_id
+            JOIN TEAMS t2 ON m.team2_id = t2.team_id
+            JOIN VENUES v ON m.venue_id = v.venue_id
+            LEFT JOIN BROADCASTS b ON m.match_id = b.match_id
+            WHERE m.status IN ('scheduled', 'live')
+        """
+        rows = self._fetch_data(query)
+        if not rows or (isinstance(rows[0][0], str) and rows[0][0].startswith("DB ERROR")): return []
+        return [[str(c) for c in r] for r in rows]
+
     def get_player_performance_data(self) -> list:
         """
         Generates simulated performance data representing a smooth bell-curve trend

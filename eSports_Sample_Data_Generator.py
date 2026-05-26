@@ -1,148 +1,215 @@
 import random
 from datetime import date, timedelta
 
-# --- MASSIVE ANIME DATA POOLS ---
-first_names = [
-    "Goku", "Vegeta", "Naruto", "Sasuke", "Luffy", "Zoro", "Ichigo", "Edward", "Light", "Lelouch", # Shonen/Classics
-    "Eren", "Levi", "Mikasa", "Gintoki", "Kagura", "Gon", "Killua", "Jotaro", "Dio", "Guts", # Action/Seinen
-    "Shinji", "Rei", "Asuka", "Lain", "Motoko", "Spike", "Faye", "Koyomi", "Hitagi", "Shinobu", # Cult/Sci-Fi/Monogatari
-    "Rimuru", "Ainz", "Subaru", "Kazuma", "Tanya", "Shiroe", "Saitama", "Mob", "Denji", "Aki" # Isekai/Modern
-]
-last_names = [
-    "Uzumaki", "Uchiha", "Monkey", "Kurosaki", "Elric", "Yagami", "Lamperouge", "Yeager", "Ackerman", 
-    "Sakata", "Freecss", "Zoldyck", "Kujo", "Brando", "Ikari", "Ayanami", "Soryu", "Iwakura", "Kusanagi", 
-    "Spiegel", "Araragi", "Senjougahara", "Oshino", "Tempest", "Ooal Gown", "Natsuki", "Degurechaff", "Hayakawa"
-]
-roles = ["IGL", "Lurker", "Support", "Entry Fragger", "Flex", "Anchor", "Sniper", "Controller", "Initiator", "Duelist"]
-regions = ["Tokyo-3", "Soul Society", "Grand Line", "Hidden Leaf", "Amestris", "Cyberia", "Roanapur", "Aincrad", "Kansai"]
+# ==========================================
+# 1. HONKAI: STAR RAIL LORE DATA POOLS
+# ==========================================
 
-team_names = [
-    "Akatsuki", "Straw Hat Pirates", "Phantom Troupe", "Survey Corps", "Black Knights", "NERV", 
-    "SOS Brigade", "Fairy Tail", "Night Raid", "Passione", "Stardust Crusaders", "Gotei 13", 
-    "State Alchemists", "Section 9", "Lagoon Company", "Future Gadget Lab", "Odd Jobs Gin", "Espada"
+teams_data = [
+    ("Astral Express Nameless", "Cosmos"), ("Stellaron Hunters", "Cosmos"),
+    ("IPC Diamond Division", "Pier Point"), ("Ten Stonehearts", "Pier Point"),
+    ("Belobog Supreme", "Jarilo-VI"), ("Wildfire Underground", "Jarilo-VI"),
+    ("Cloud Knights Vanguard", "Xianzhou Luofu"), ("Ten-Lords Commission", "Xianzhou Luofu"),
+    ("Penacony Dreamweavers", "Penacony"), ("Oak Family Aristocrats", "Penacony"),
+    ("Genius Society Club", "Cosmos"), ("Intelligentsia Guild", "Cosmos"),
+    ("Galaxy Rangers & Co.", "Cosmos"), ("Masked Fools Troupe", "Tavern"),
+    ("Annihilation Gang", "Talia"), ("Antimatter Legion", "Cosmos"),
+    ("Doctors of Chaos", "Cosmos"), ("Denizens of Abundance", "Cosmos"),
+    ("The Swarm Propagation", "Cosmos"), ("Garden of Recollection", "Cosmos"),
+    ("Mourning Actors", "Cosmos"), ("History Fictionologists", "Cosmos"),
+    ("Knights of Beauty", "Cosmos"), ("Omen Vanguards", "Cosmos"),
+    ("Xianzhou Alliance", "Xianzhou Zhuming"), ("Yaoqing Merlin's Claws", "Xianzhou Yaoqing"),
+    ("Architects Vanguard", "Jarilo-VI"), ("Device IX Nihility", "Cosmos")
+]
+
+roles = [
+    "Hunt Fragger", "Erudition IGL", "Destruction Flex", 
+    "Preservation Tank", "Harmony Support", "Nihility Lurker", 
+    "Abundance Healer", "Remembrance Controller", "Elation Specialist", 
+    "Barking Specialist"
+]
+
+players_data = [
+    "Trailblazer", "March 7th", "Dan Heng", "Himeko", "Welt Yang", 
+    "Kafka", "Silver Wolf", "Firefly", "Blade", "Sam", "Mortenax Blade", "Silver Wolf LV.999",
+    "Topaz", "Aventurine", "Jade", "Skott", "Opal", "Diamond", "Taravan Keane",
+    "Bronya Rand", "Seele", "Gepard Landau", "Luka", "Serval", "Pela", "Clara", "Hook", "Natasha",
+    "Jing Yuan", "Yanqing", "Fu Xuan", "Jingliu", "Huohuo", "Tingyun", "Qingque", "Sushang", "Bailu", "Guinaifen", "Jiaoqiu", "Yunli", "Feixiao", "Moze", "Lingsha", "Fugue", "Dan Heng | Imbibitor Lunae", "Luocha",
+    "Sunday", "Robin", "Gallagher", "Misha", "Acheron", "Black Swan", "Sparkle", "Boothill", "Rappa",
+    "Herta", "Ruan Mei", "Screwllum", "Stephen Lloyd", "Dr. Ratio",
+    "Sampo Koski", "Aglaea", "Anaxa", "Cyrene", "Evernight", "Hyacine", "Castorice"
 ]
 
 venue_names = [
-    "Tenkaichi Budokai Arena", "U.A. High Stadium", "Heavens Arena", "Dark Tournament Ring", 
-    "Cell Games Arena", "Tokyo Dome (Underground)", "Cyberia Club", "Mabe Village Square"
+    "Herta Space Station - Master Control Room", "Herta Space Station - Seclusion Zone",
+    "Boulder Town Underground Fight Club", "Everwinter Hill - Stellaron Core", "Pillars of Creation",
+    "Old Weapon Testing Ground", "Scalegorge Waterscape - Dragonprayer Terrace", 
+    "Fyxestroll Garden - Suppression Tower", "Shackling Prison - Bottom Depths",
+    "Palace of Astrum", "Penacony Grand Theater - Main Stage", "Radiant Feldspar - Poolside Arena", 
+    "Clock Studios Theme Park", "Dewlight Pavilion - Sandpit", "SoulGlad Scorchsand Audition Venue",
+    "Planarcadia - Wispae Amusement Park", "World in Canvas", "Echo of War: Doomsday Beast",
+    "Echo of War: Phantylia the Undying", "Echo of War: Starcrusher Swarm King", "Echo of War: Septimus, Harmonious Choir"
 ]
 
-map_names = ["Planet Namek", "Wall Maria", "Shibuya Station", "Hueco Mundo", "Final Valley", "Kamurocho", "Wired Layer 3"]
-game_modes = ["Bomb Defusal", "Hostage Rescue", "Team Deathmatch", "Capture the Flag", "King of the Hill", "Payload"]
+map_names = [
+    "Supply Zone Railway", "Base Zone Monitor Room", "Storage Zone Atrium",
+    "Rivet Town Alleyways", "Everwinter Peak", "Corridor of Fading Echoes", "Robot Settlement Camp",
+    "Cloudford Cargo Skiffs", "Alchemy Commission Furnace", "Stargazer Navalia Docks",
+    "Golden Hour Dreamscape", "Dewlight Pavilion Cityscape", "Child's Dream", "Dream's Edge",
+    "Seclusion Zone - Ruan Mei's Lab", "Shackling Prison Depth", "Skysplitter Helipad",
+    "Dovebrook District", "Seafeld TV Tower", "Eternal Holy City Okhema"
+]
 
-tourney_names = ["Dark Tournament", "Holy Grail War", "Chunin Exams", "Tournament of Power", "Grand Magic Games", "VMMO Championship"]
+game_modes = [
+    "Payload (Trotter Escort)", "Team Deathmatch", "Capture the Stellaron", 
+    "King of the Hill", "Swarm Survival", "Boss Raid", 
+    "Memory of Chaos Speedrun", "Pure Fiction Showdown", 
+    "Apocalyptic Shadow Boss Rush", "Divergent Universe Endless", 
+    "Gold and Gears Draft", "Anomaly Arbitration"
+]
+
+tourney_names = [
+    "Aetherium Wars Championship", "Boulder Town Super League", "Interastral Tournament Festival", 
+    "Wardance Ceremony", "Simulated Universe Cup", "Clockie's Dreamplay Derby",
+    "Aurum Alley Hustle", "Cosmicon Trade War", "Starward Mode Invitational"
+]
+
+broadcast_platforms = [
+    "Interastral Peace Broadcast", "Owlbert's Twitch", "Clock Studios Network", 
+    "Genius Society Archives", "Astral Express Data Bank", "Garden of Recollection Streams"
+]
 
 # --- GENERATION SETTINGS ---
-NUM_ROWS = 100 # Total items per major table (100 players, 100 teams, etc.)
-TOTAL_MATCHES = 150
-TOTAL_GAMES = 300
+NUM_TEAMS = len(teams_data)
+NUM_PLAYERS = len(players_data)
+TOTAL_MATCHES = 300   
+TOTAL_GAMES = 1000    
 
 def random_date(start_year=2024, end_year=2026):
     start = date(start_year, 1, 1)
     end = date(end_year, 12, 31)
     return start + timedelta(days=random.randint(0, (end - start).days))
 
-# --- SQL GENERATION LOGIC ---
-with open("master_anime_seed.sql", "w", encoding="utf-8") as f:
+# Helper to escape single quotes for SQL
+def esc(val):
+    return str(val).replace("'", "''")
+
+# Helper to chunk large inserts to avoid SQL Server's 1000 row limit
+def write_batches(f, table_name, columns, rows, batch_size=900):
+    for i in range(0, len(rows), batch_size):
+        batch = rows[i:i + batch_size]
+        f.write(f"INSERT INTO {table_name} ({columns}) VALUES\n")
+        f.write(",\n".join(batch) + ";\nGO\n\n")
+
+# ==========================================
+# 2. SQL GENERATION LOGIC
+# ==========================================
+with open("hsr_esports_master_seed.sql", "w", encoding="utf-8") as f:
     f.write("USE EsportsTournament;\nGO\n\n")
     f.write("-- NOTE: Execute this on an empty database (or truncate tables first) so IDENTITY keys start at 1\n\n")
 
-    # 1. TOURNAMENTS (Base size 20)
-    f.write("-- 1. TOURNAMENTS\nINSERT INTO TOURNAMENTS (tournament_name, start_date, end_date) VALUES\n")
-    rows = []
-    for i in range(20):
-        start = random_date(2025, 2026)
-        end = start + timedelta(days=random.randint(14, 45))
-        rows.append(f"('{random.choice(tourney_names)} Vol. {i+1}', '{start}', '{end}')")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
-
-    # 2. TEAMS (Base size NUM_ROWS)
-    f.write("-- 2. TEAMS\nINSERT INTO TEAMS (team_name, region) VALUES\n")
-    rows = []
-    for i in range(NUM_ROWS):
-        team = f"{random.choice(team_names)} {random.choice(['Alpha', 'Black', 'Zero', 'Ex', 'Red', 'Prime', ''])}".strip()
-        rows.append(f"('{team}', '{random.choice(regions)}')")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
-
-    # 3. VENUES (Base size 30)
-    f.write("-- 3. VENUES\nINSERT INTO VENUES (name, location, is_online) VALUES\n")
-    rows = []
-    for i in range(30):
-        is_online = random.choice([0, 1])
-        loc = "Wired Network" if is_online else random.choice(regions)
-        rows.append(f"('{random.choice(venue_names)} - Area {i+1}', '{loc}', {is_online})")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
-
-    # 4. PLAYERS (Base size NUM_ROWS * 2)
-    f.write("-- 4. PLAYERS\nINSERT INTO PLAYERS (name, role) VALUES\n")
-    rows = []
-    for i in range(NUM_ROWS * 2):
-        name = f"{random.choice(first_names)} {random.choice(last_names)}"
-        rows.append(f"('{name}', '{random.choice(roles)}')")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
-
-    # 5. PATCHES (Base size 15)
-    f.write("-- 5. PATCHES\nINSERT INTO PATCHES (version_number, release_date) VALUES\n")
+    # 1. TOURNAMENTS
+    f.write("-- 1. TOURNAMENTS\n")
     rows = []
     for i in range(15):
-        rows.append(f"('v{random.randint(1,4)}.{random.randint(0,9)}.{i}', '{random_date(2024, 2025)}')")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
+        start = random_date(2025, 2026)
+        end = start + timedelta(days=random.randint(14, 45))
+        rows.append(f"('{esc(random.choice(tourney_names))} Vol. {i+1}', '{start}', '{end}')")
+    write_batches(f, "TOURNAMENTS", "tournament_name, start_date, end_date", rows)
 
-    # 6. MAPS (Base size 20)
-    f.write("-- 6. MAPS\nINSERT INTO MAPS (map_name, game_mode) VALUES\n")
-    rows = []
-    for i in range(20):
-        rows.append(f"('{random.choice(map_names)}', '{random.choice(game_modes)}')")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
+    # 2. TEAMS
+    f.write("-- 2. TEAMS\n")
+    rows = [f"('{esc(team)}', '{esc(region)}')" for team, region in teams_data]
+    write_batches(f, "TEAMS", "team_name, region", rows)
 
-    # 7. TOURNAMENT_STAGES (Assign to tournaments 1-20)
-    f.write("-- 7. TOURNAMENT STAGES\nINSERT INTO TOURNAMENT_STAGES (tournament_id, stage_name) VALUES\n")
+    # 3. VENUES
+    f.write("-- 3. VENUES\n")
     rows = []
-    for i in range(50):
-        rows.append(f"({random.randint(1, 20)}, '{random.choice(['Group Stage', 'Quarterfinals', 'Semifinals', 'Grand Finals'])}')")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
+    for venue in venue_names:
+        is_online = 1 if any(kw in venue for kw in ["Simulated", "Dreamscape", "World in Canvas"]) else random.choice([0, 1])
+        loc = "Metaverse" if is_online else "Physical Domain"
+        rows.append(f"('{esc(venue)}', '{esc(loc)}', {is_online})")
+    write_batches(f, "VENUES", "name, location, is_online", rows)
 
-    # 8. PLAYER_HISTORY (Assign players 1-200 to teams 1-100)
-    f.write("-- 8. PLAYER HISTORY\nINSERT INTO PLAYER_HISTORY (player_id, team_id, join_date, leave_date) VALUES\n")
+    # 4. PLAYERS
+    f.write("-- 4. PLAYERS\n")
     rows = []
-    for i in range(NUM_ROWS * 2):
-        rows.append(f"({i+1}, {random.randint(1, NUM_ROWS)}, '{random_date(2024, 2025)}', NULL)")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
+    for name in players_data:
+        role = "Barking Specialist" if name == "Skott" else random.choice(roles[:-1]) 
+        rows.append(f"('{esc(name)}', '{esc(role)}')")
+    write_batches(f, "PLAYERS", "name, role", rows)
+
+    # 5. PATCHES
+    f.write("-- 5. PATCHES\n")
+    rows = []
+    patch_versions = ["1.0", "1.4", "2.0", "2.2", "2.4", "3.0", "3.1", "4.0", "4.2", "4.3"]
+    for pv in patch_versions:
+        rows.append(f"('v{pv}', '{random_date(2024, 2026)}')")
+    write_batches(f, "PATCHES", "version_number, release_date", rows)
+
+    # 6. MAPS
+    f.write("-- 6. MAPS\n")
+    rows = []
+    for map_name in map_names:
+        rows.append(f"('{esc(map_name)}', '{esc(random.choice(game_modes))}')")
+    write_batches(f, "MAPS", "map_name, game_mode", rows)
+
+    # 7. TOURNAMENT_STAGES
+    f.write("-- 7. TOURNAMENT STAGES\n")
+    rows = []
+    for i in range(45):
+        rows.append(f"({random.randint(1, 15)}, '{esc(random.choice(['Group Stage', 'Playoffs', 'Quarterfinals', 'Semifinals', 'Grand Finals']))}')")
+    write_batches(f, "TOURNAMENT_STAGES", "tournament_id, stage_name", rows)
+
+    # 8. PLAYER_HISTORY
+    f.write("-- 8. PLAYER HISTORY\n")
+    rows = []
+    for i in range(NUM_PLAYERS):
+        rows.append(f"({i+1}, {random.randint(1, NUM_TEAMS)}, '{random_date(2024, 2025)}', NULL)")
+    write_batches(f, "PLAYER_HISTORY", "player_id, team_id, join_date, leave_date", rows)
 
     # 9. MATCHES
-    f.write("-- 9. MATCHES\nINSERT INTO MATCHES (stage_id, team1_id, team2_id, winner_team_id, venue_id, match_date, status, format) VALUES\n")
+    f.write("-- 9. MATCHES\n")
     rows = []
     for i in range(TOTAL_MATCHES):
-        t1, t2 = random.sample(range(1, NUM_ROWS + 1), 2)
+        t1, t2 = random.sample(range(1, NUM_TEAMS + 1), 2)
         status = random.choice(['scheduled', 'live', 'completed'])
         winner = "NULL" if status != 'completed' else random.choice([t1, t2])
-        fmt = random.choice(['Bo1', 'Bo3', 'Bo5'])
-        rows.append(f"({random.randint(1, 50)}, {t1}, {t2}, {winner}, {random.randint(1, 30)}, '{random_date(2025, 2026)}', '{status}', '{fmt}')")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
+        fmt = random.choice(['Bo1', 'Bo3', 'Bo5', 'Bo7'])
+        rows.append(f"({random.randint(1, 45)}, {t1}, {t2}, {winner}, {random.randint(1, len(venue_names))}, '{random_date(2025, 2026)}', '{status}', '{fmt}')")
+    write_batches(f, "MATCHES", "stage_id, team1_id, team2_id, winner_team_id, venue_id, match_date, status, format", rows)
 
-    # 10. BROADCASTS (Attach to Matches)
-    f.write("-- 10. BROADCASTS\nINSERT INTO BROADCASTS (match_id, platform, url, language) VALUES\n")
+    # 10. BROADCASTS
+    f.write("-- 10. BROADCASTS\n")
     rows = []
-    for i in range(100):
-        plat = random.choice(['Twitch', 'YouTube', 'NicoNico'])
-        rows.append(f"({random.randint(1, TOTAL_MATCHES)}, '{plat}', 'https://{plat.lower()}.tv/esports_stream_{i}', '{random.choice(['EN', 'JP', 'KR'])}')")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
+    for i in range(250):
+        plat = random.choice(broadcast_platforms)
+        domain = plat.split()[0].lower().replace("'", "")
+        rows.append(f"({random.randint(1, TOTAL_MATCHES)}, '{esc(plat)}', 'https://{domain}.tv/stream/{random.randint(1000,9999)}', '{random.choice(['EN', 'JP', 'CN', 'KR'])}')")
+    write_batches(f, "BROADCASTS", "match_id, platform, url, language", rows)
 
     # 11. GAMES
-    f.write("-- 11. GAMES\nINSERT INTO GAMES (match_id, patch_id, game_number, map_id, winner_team_id, duration_seconds) VALUES\n")
+    f.write("-- 11. GAMES\n")
     rows = []
     for i in range(TOTAL_GAMES):
-        rows.append(f"({random.randint(1, TOTAL_MATCHES)}, {random.randint(1, 15)}, {random.randint(1, 5)}, {random.randint(1, 20)}, NULL, {random.randint(900, 3600)})")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
+        winner = random.randint(1, NUM_TEAMS)
+        rows.append(f"({random.randint(1, TOTAL_MATCHES)}, {random.randint(1, 10)}, {random.randint(1, 5)}, {random.randint(1, len(map_names))}, {winner}, {random.randint(1200, 4500)})")
+    write_batches(f, "GAMES", "match_id, patch_id, game_number, map_id, winner_team_id, duration_seconds", rows)
 
     # 12. GAME_STATS
-    f.write("-- 12. GAME STATS\nINSERT INTO GAME_STATS (game_id, player_id, points_scored, assists, rating) VALUES\n")
+    f.write("-- 12. GAME STATS\n")
     rows = []
-    for i in range(TOTAL_GAMES * 2):
-        pts = random.randint(0, 60)
-        ast = random.randint(0, 25)
-        rtg = round(random.uniform(4.0, 10.0), 1)
-        rows.append(f"({random.randint(1, TOTAL_GAMES)}, {random.randint(1, NUM_ROWS * 2)}, {pts}, {ast}, {rtg})")
-    f.write(",\n".join(rows) + ";\nGO\n\n")
+    for i in range(TOTAL_GAMES * 4):  
+        player_id = random.randint(1, NUM_PLAYERS)
+        
+        if players_data[player_id - 1] == "Skott":
+            pts, ast, rtg = 0, 99, 10.0
+        else:
+            pts = random.randint(0, 45)
+            ast = random.randint(0, 25)
+            rtg = round(random.uniform(4.0, 9.9), 1)
+            
+        rows.append(f"({random.randint(1, TOTAL_GAMES)}, {player_id}, {pts}, {ast}, {rtg})")
+    write_batches(f, "GAME_STATS", "game_id, player_id, points_scored, assists, rating", rows)
 
-print("Master Anime Seed Script Generated: master_anime_seed.sql")
+print("✅ Master HSR Seed Script Generated with Escaped Strings and Chunking.")

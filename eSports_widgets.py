@@ -99,8 +99,11 @@ class EsportsCoreLog:
         # Cache the background surface to avoid per-frame allocation
         self._cached_glass: Optional[pygame.Surface] = None
         
-        self.imp_msg: str = "SYSTEM READY"
+        self.imp_msg: str = "TOURNAMENT UPDATES"
         self.std_logs: List[str] = []
+        
+        self.is_hacked: bool = False
+        self.hack_msg: str = ""
         
         # Scrolling state
         self.scroll_std: float = 0.0
@@ -219,13 +222,20 @@ class EsportsCoreLog:
         Graphics.draw_chamfered_rect(surf, self.rect, palette['accent'], 2)
 
         # 2. Draw Important Message Box
-        Graphics.draw_chamfered_rect(surf, self.imp_rect, palette['fill'], 0)
-        Graphics.draw_chamfered_rect(surf, self.imp_rect, palette['accent'], 1)
+        if self.is_hacked:
+            box_fill = (60, 10, 15)
+            box_accent = (255, 40, 60)
+            display_msg = self.hack_msg
+        else:
+            box_fill = palette['fill']
+            box_accent = palette['accent']
+            display_msg = self.imp_msg
+
+        Graphics.draw_chamfered_rect(surf, self.imp_rect, box_fill, 0)
+        Graphics.draw_chamfered_rect(surf, self.imp_rect, box_accent, 1)
         
-        t = Assets.FONTS["SUB"].render(self.imp_msg, True, palette['accent'])
-        # Scale text if it overflows the box
-        if t.get_width() > self.imp_rect.width - 20:
-             t = pygame.transform.scale(t, (self.imp_rect.width - 20, t.get_height()))
+        trunc_msg = Graphics.truncate_text(display_msg, Assets.FONTS["SUB"], self.imp_rect.width - 20)
+        t = Assets.FONTS["SUB"].render(trunc_msg, True, box_accent)
         surf.blit(t, t.get_rect(center=self.imp_rect.center))
 
         # 3. Draw Header
@@ -275,7 +285,7 @@ class CentralCore:
         self.rot_a: float = 0.0
         self.rot_b: float = 0.0
         
-        self.tgt_txt: str = "SYSTEM READY"
+        self.tgt_txt: str = "TOURNAMENT UPDATES"
         self.tgt_desc: str = "WAITING FOR INPUT"
         self.disp_txt: str = self.tgt_txt
         self.disp_desc: str = self.tgt_desc
