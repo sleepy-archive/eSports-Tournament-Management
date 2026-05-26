@@ -1,42 +1,52 @@
 # ESPORTS DB // TERMINAL (HONKAI STAR RAIL THEMED)
-### "A high-performance Pygame dashboard for eSports tournament management."
+### "A high-performance Pygame dashboard for eSports tournament management, with a nice HSR theme touch."
+
+Ever wanted to manage an eSports tournament but felt like standard database tools were just a bit too... boring? Welcome to the Terminal! This project is a fully functional SQL database dashboard wrapped in a sleek, Honkai: Star Rail-inspired UI. Whether you're tracking the Aetherium Wars or just organizing your own local brackets, why not do it in style?
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)
 ![Pygame](https://img.shields.io/badge/Pygame-CE-green?style=flat&logo=python)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-MS_SQL-CC2927?style=flat&logo=microsoftsqlserver&logoColor=white)
-![Course](https://img.shields.io/badge/Course-CS160_Databases-blue?style=flat)
-
-> ⚡ **Context:** This project was developed for a Database Systems (CS160) curriculum to demonstrate the integration of a complex Microsoft SQL Server backend with a hardware-accelerated Python front-end application layer.
+![Honkai Star Rail](https://img.shields.io/badge/Honkai_Star_Rail-🚂-purple?style=flat)
 
 ---
 
-## 📸 UI
+## 📸 Interastral Peace Broadcast // UI Preview
 
 <p align="center">
-  <img src="assets/eSports_DEMO.png" width="48%" alt="Main Dashboard" style="border-radius: 5px;">
+  <img src="assets\eSports_DEMO.png" width="48%" alt="Screenshot 1" style="border-radius: 5px;">
   &nbsp; &nbsp;
-  <img src="assets/eSports_Query_Viewer.png" width="48%" alt="Data Viewer" style="border-radius: 5px;">
+  <img src="assets\eSports_Schedule_Viewer.png" width="48%" alt="Screenshot 2" style="border-radius: 5px;">
 </p>
 
 <p align="center">
-  <img src="assets/eSports_Update_Record.png" width="97%" alt="Graph Viewer" style="border-radius: 5px;">
+  <img src="assets\eSports_Update_Status.png" width="48%" alt="Screenshot 3" style="border-radius: 5px;">
+  &nbsp; &nbsp;
+  <img src="assets\eSports_Player_Graph.png" width="48%" alt="Screenshot 4" style="border-radius: 5px;">
 </p>
 
 *The UI utilizes asynchronous threading for all database queries via `pyodbc`. This ensures animations, floating UI elements, and interactive screens maintain 60FPS even when fetching complex multi-table SQL joins.*
 
 ---
 
-## 🛠️ Installation & Setup
+## ✨ Data Bank Contents (Features)
+- **Full-Fledged Tournament Tracker**: Keep tabs on your live matches, active rosters, global standings, and player combat metrics all in one place.
+- **Banging OST**: Chill out to some sweet Penacony tunes ("Game Time! Planarcadia Battle Theme" plays by default) while you crunch those numbers and edit records.
+- **Easter Eggs & Flavor**: Keep an eye on the system log... Silver Wolf might just try to hack your terminal if you leave it running long enough. Plus, the ticker features live "fan reactions" to your matches!
+- **Buttery Smooth UI**: Built with Pygame-CE, it features floating hexes, a "breathing" core animation, and fully interactive data viewers that feel straight out of the Interastral Peace Corporation.
 
-### 1. Database Setup
-Before running the UI, the Microsoft SQL Server database must be initialized:
-1. Open **SQL Server Management Studio (SSMS)**.
+---
+
+## 🛠️ Astral Express Boarding Procedure (Installation & Setup)
+
+### 1. IPC Matrix Initialization (Database Setup)
+Before diving into the Simulated Universe, the IPC database must be initialized:
+1. Open **SQL Server Management Studio (SSMS)** (your databank client).
 2. Navigate to the `SQL/` directory in this repository.
 3. Open and execute `eSports_DB_Creation.sql` to build the schema.
 4. Open and execute `eSports_Sample_Data.sql` to populate the tables.
 
-### 2. Python Environment
-Clone the repository and install the required dependencies:
+### 2. Synesthesia Environment Calibration (Python Setup)
+Download the coordinates to your local terminal and install the required Synesthesia dependencies:
 ```bash
 git clone [https://github.com/YOUR_USERNAME/ESPORTS-DB-TERMINAL.git](https://github.com/YOUR_USERNAME/ESPORTS-DB-TERMINAL.git)
 cd ESPORTS-DB-TERMINAL
@@ -93,6 +103,9 @@ Use the scroll wheel to navigate populated data tables and the live system log.
 You can use Sample Data Generator to fill out your tables.
 
 Press ESC to close any active data viewers or graphs.
+
+## 🚧 Trailblazer's Warning (Disclaimer)
+Just a quick heads-up: this is purely a passion project built for fun! While the Astral Express usually runs on time, you might occasionally bump into a few bugs, glitches, or space-time anomalies (aka random errors) along the way. Feel free to tinker around, fix things, and make it your own!
 
 ## ⚖️ License
 Distributed under the MIT License. See LICENSE for more information.
